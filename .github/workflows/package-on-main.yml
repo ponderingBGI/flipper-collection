@@ -28,14 +28,14 @@ jobs:
 
       - name: Prepare packages tree
         run: |
-          mkdir -p packages/apps/Tools
-          cp -v ${GITHUB_WORKSPACE}/${{ steps.build.outputs.fap-artifacts }}/*.fap packages/apps/Tools/mouse-and-keyboard-jiggler.fap
+          mkdir -p packages/Tools
+          cp -v ${GITHUB_WORKSPACE}/${{ steps.build.outputs.fap-artifacts }}/*.fap packages/Tools/mouse-and-keyboard-jiggler.fap
 
       - name: Commit packaged app [skip ci]
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add packages/apps/Tools/mouse-and-keyboard-jiggler.fap
+          git add packages/Tools/mouse-and-keyboard-jiggler.fap
           if git diff --cached --quiet; then
             echo "No package changes to commit"
           else

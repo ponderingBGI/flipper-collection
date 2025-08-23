@@ -23,5 +23,5 @@ This repo uses uFBT for a mainstream Flipper app workflow.
 - Fix any CI failures before requesting review.
 
 ## Packaging
-- On merge to `main`, GitHub Actions builds the app and places the packaged `.fap` under `packages/apps/Tools/`.
+- On merge to `main`, GitHub Actions builds the app and places the packaged `.fap` under `packages/Tools/`.
 - Root README links to these folders for easy drag-and-drop onto the Flipper.

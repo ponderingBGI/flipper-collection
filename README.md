@@ -10,6 +10,6 @@ A curated collection of Flipper Zero apps.
 - Packaged apps ready to drag onto your Flipper: downloads/
 
 ## Packages (auto-updated on main)
-- Apps: packages/apps/Tools/
+- Tools: packages/Tools/
 
 See DEVELOPMENT.md for the build/test workflow.

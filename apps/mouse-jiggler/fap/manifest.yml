@@ -1,0 +1,17 @@
+# Manifest required for the Flipper Application Catalog
+author: "@you"
+category: "Tools"
+changelog: "@./docs/CHANGELOG.md"
+description: "@./docs/README.md"
+id: "mousejiggler"
+name: "Mouse and keyboard Jiggler"
+short_description: "Mouse + WASD jiggler"
+sourcecode:
+  location:
+    commit_sha: ...
+    origin: https://github.com/you/yourrepo.git
+    subdir: fap
+  type: git
+version: 0.1.0
+
+

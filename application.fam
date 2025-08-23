@@ -1,0 +1,18 @@
+App(
+    appid="mousejiggler",
+    name="Mouse and keyboard Jiggler",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="mousejiggler_app",
+    requires=[
+        "gui",
+        "notification",
+    ],
+    stack_size=2 * 1024,
+    order=90,
+    fap_icon="mousejiggler.png",
+    fap_category="USB",
+    fap_description="Advanced mouse jiggler with WASD key functionality",
+    fap_author="Flipper Community",
+    fap_version="2.0",
+    fap_icon_assets="icons",
+)

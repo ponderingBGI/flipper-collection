@@ -1,0 +1,61 @@
+name: PR Build + Lint
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-dev:
+    name: ufbt build (dev)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build with ufbt (dev)
+        uses: flipperdevices/flipperzero-ufbt-action@v0.1.2
+        id: build-app-dev
+        with:
+          app-dir: ./apps/mouse-jiggler/fap
+          sdk-channel: dev
+      - name: Upload artifacts (dev)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mouse-keyboard-jiggler-dev-${{ steps.build-app-dev.outputs.suffix }}.zip
+          path: ${{ steps.build-app-dev.outputs.fap-artifacts }}
+
+  build-release:
+    name: ufbt build (release)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build with ufbt (release)
+        uses: flipperdevices/flipperzero-ufbt-action@v0.1.2
+        id: build-app-release
+        with:
+          app-dir: ./apps/mouse-jiggler/fap
+          sdk-channel: release
+      - name: Upload artifacts (release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mouse-keyboard-jiggler-release-${{ steps.build-app-release.outputs.suffix }}.zip
+          path: ${{ steps.build-app-release.outputs.fap-artifacts }}
+
+  lint:
+    name: ufbt lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Lint sources
+        uses: flipperdevices/flipperzero-ufbt-action@v0.1.2
+        with:
+          app-dir: ./apps/mouse-jiggler/fap
+          sdk-channel: dev
+          task: lint
+
+

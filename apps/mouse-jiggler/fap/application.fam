@@ -1,0 +1,18 @@
+App(
+    appid="mousejiggler",
+    apptype=FlipperAppType.EXTERNAL,
+    cdefines=["APP_MOUSEJIGGLER"],
+    entry_point="mousejiggler_app",
+    fap_author="@you",
+    fap_category="Tools",
+    fap_description="Mouse and WASD jiggler",
+    fap_libs=["assets"],
+    fap_version="0.1.0",
+    fap_weburl="https://github.com/",
+    name="Mouse and keyboard Jiggler",
+    order=50,
+    requires=["gui", "storage"],
+    stack_size=8 * 1024,
+)
+
+

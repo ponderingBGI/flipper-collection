@@ -1,0 +1,8 @@
+venv/
+export/
+*.fap
+*.zip
+.DS_Store
+VSCode/
+.vscode/
+

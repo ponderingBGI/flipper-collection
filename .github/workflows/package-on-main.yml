@@ -43,7 +43,7 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add packages/apps/Tools/mouse-and-keyboard-jiggler.fap
+          git add -f packages/apps/Tools/mouse-and-keyboard-jiggler.fap
           if git diff --cached --quiet; then
             echo "No package changes to commit"
           else

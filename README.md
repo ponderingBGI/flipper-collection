@@ -10,6 +10,9 @@ A curated collection of Flipper Zero apps.
 - Packaged apps ready to drag onto your Flipper: downloads/
 
 ## Packages (auto-updated on main)
-- Tools: packages/Tools/
+- Apps (Tools): packages/apps/Tools/
+- Sub-GHz: packages/subghz/
+- BadUSB: packages/badusb/
+- NFC: packages/nfc/
 
 See DEVELOPMENT.md for the build/test workflow.

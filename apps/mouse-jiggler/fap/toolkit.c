@@ -51,17 +51,17 @@ static void mousejiggler_render_callback(Canvas* canvas, void* ctx) {
     if(state->running) {
         canvas_draw_str(canvas, 2, 10, "ACTIVE");
 
-        // Mode display with icons
+        // Mode display
         canvas_draw_str(canvas, 2, 25, "Mode:");
         switch(state->mode) {
         case ModeMouseJiggle:
-            canvas_draw_str(canvas, 35, 25, "🖱️ Mouse Only");
+            canvas_draw_str(canvas, 35, 25, "Mouse Only");
             break;
         case ModeWASDKeys:
-            canvas_draw_str(canvas, 35, 25, "⌨️ WASD Only");
+            canvas_draw_str(canvas, 35, 25, "WASD Only");
             break;
         case ModeBoth:
-            canvas_draw_str(canvas, 35, 25, "🖱️⌨️ Both");
+            canvas_draw_str(canvas, 35, 25, "Both");
             break;
         }
 
@@ -89,16 +89,17 @@ static void mousejiggler_render_callback(Canvas* canvas, void* ctx) {
     const char* mode_text = "";
     switch(state->mode) {
     case ModeMouseJiggle:
-        mode_text = "🖱️ MOUSE";
+        mode_text = "MOUSE";
         break;
     case ModeWASDKeys:
-        mode_text = "⌨️ WASD";
+        mode_text = "WASD";
         break;
     case ModeBoth:
-        mode_text = "🖱️⌨️ COMBO";
+        mode_text = "COMBO";
         break;
     }
     canvas_draw_str_aligned(canvas, 64, 60, AlignCenter, AlignCenter, mode_text);
+    canvas_draw_str(canvas, 2, 63, "Hold Back to exit");
 
     furi_mutex_release(state->mutex);
 }
@@ -164,8 +165,7 @@ int32_t mousejiggler_app(void* p) {
     view_port_input_callback_set(view_port, mousejiggler_input_callback, event_queue);
     gui_add_view_port(gui, view_port, GuiLayerFullscreen);
 
-    // Enable USB HID
-    furi_hal_usb_set_config(&usb_hid, NULL);
+    // USB HID will be enabled by the user/device configuration; avoid reconfiguring here
 
     // Main event loop
     MouseJigglerEvent event;
@@ -218,7 +218,9 @@ int32_t mousejiggler_app(void* p) {
                         break;
 
                     case InputKeyBack:
-                        running = false;
+                        if(event.input.type == InputTypeLong) {
+                            running = false;
+                        }
                         break;
 
                     default:

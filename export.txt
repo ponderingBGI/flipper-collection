@@ -1,0 +1,32 @@
+🖱️ Mouse Jiggler Pro - Export Summary
+=====================================
+
+✅ EXPORT COMPLETED SUCCESSFULLY!
+
+📁 Export Structure:
+export/
+├── applications/external/mousejiggler/
+│   ├── mousejiggler.c          # Main source code
+│   └── application.fam         # App manifest
+├── dist/f7-D/
+│   └── mousejiggler.fap        # Built application file
+└── fbt                         # Build script
+
+🎯 Ready to Install:
+- Copy mousejiggler.fap to your Flipper Zero's apps/USB/ directory
+- Or use qFlipper to install the .fap file
+
+🚀 Features:
+- Mouse jiggling with random movements
+- WASD key press functionality  
+- 3 operation modes (Mouse, WASD, Both)
+- Beautiful UI with real-time stats
+- Random timing (1-3 seconds)
+
+📋 Environment Variables Set:
+FLIPPER_FW_PATH = c:\Users\olimt\OneDrive\Desktop\flipper\mouse-jiggler\export
+
+🔧 Build Command Used:
+bash fbt fap_mousejiggler
+
+Export completed at: $(Get-Date)

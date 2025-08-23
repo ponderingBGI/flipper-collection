@@ -27,9 +27,17 @@ jobs:
           sdk-channel: release
 
       - name: Prepare packages tree
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p packages/apps/Tools packages/subghz packages/badusb packages/nfc
-          cp -v ${GITHUB_WORKSPACE}/${{ steps.build.outputs.fap-artifacts }}/*.fap packages/apps/Tools/mouse-and-keyboard-jiggler.fap
+          ART="${{ steps.build.outputs.fap-artifacts }}"
+          if [ -d "$ART" ]; then
+            FAP=$(ls "$ART"/*.fap | head -n 1)
+          else
+            FAP="$ART"
+          fi
+          cp -v "$FAP" packages/apps/Tools/mouse-and-keyboard-jiggler.fap
 
       - name: Commit packaged app [skip ci]
         run: |

@@ -1,6 +1,6 @@
 App(
     appid="mousejiggler",
-    name="Mouse Jiggler Pro",
+    name="Mouse and keyboard Jiggler",
     apptype=FlipperAppType.EXTERNAL,
     entry_point="mousejiggler_app",
     requires=[

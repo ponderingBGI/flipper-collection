@@ -49,7 +49,7 @@ static void mousejiggler_render_callback(Canvas* canvas, void* ctx) {
     
     // Header with icon
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 25, 12, "🖱️ Jiggler Pro");
+    canvas_draw_str(canvas, 25, 12, "🖱️ Mouse and keyboard Jiggler");
     
     // Status indicator
     canvas_set_font(canvas, FontSecondary);

@@ -1,4 +1,4 @@
-# Mouse Jiggler Pro
+# Mouse and keyboard Jiggler
 
 Initial app.
 

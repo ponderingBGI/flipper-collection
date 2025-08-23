@@ -1,4 +1,4 @@
-# Mouse Jiggler Pro - Flipper Zero Application
+# Mouse and keyboard Jiggler - Flipper Zero Application
 # Build instructions for Flipper Zero firmware
 
 APP_NAME = mousejiggler
@@ -7,7 +7,7 @@ APP_DIR = applications/external/$(APP_NAME)
 .PHONY: build install clean help
 
 help:
-	@echo "Mouse Jiggler Pro - Build Commands"
+	@echo "Mouse and keyboard Jiggler - Build Commands"
 	@echo "=================================="
 	@echo "build   - Build the application (.fap file)"
 	@echo "install - Copy files to Flipper firmware directory"

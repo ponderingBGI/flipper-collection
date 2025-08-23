@@ -1,0 +1,46 @@
+name: Package on main
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build release and update packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Build with ufbt (release)
+        id: build
+        uses: flipperdevices/flipperzero-ufbt-action@v0.1.2
+        with:
+          app-dir: ./apps/mouse-jiggler/fap
+          sdk-channel: release
+
+      - name: Prepare packages tree
+        run: |
+          mkdir -p packages/apps/Tools
+          cp -v ${GITHUB_WORKSPACE}/${{ steps.build.outputs.fap-artifacts }}/*.fap packages/apps/Tools/mouse-and-keyboard-jiggler.fap
+
+      - name: Commit packaged app [skip ci]
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add packages/apps/Tools/mouse-and-keyboard-jiggler.fap
+          if git diff --cached --quiet; then
+            echo "No package changes to commit"
+          else
+            git commit -m "chore(packages): update packaged app [skip ci]"
+            git push
+          fi
+
+

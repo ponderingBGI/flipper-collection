@@ -5,7 +5,7 @@
 #include <notification/notification_messages.h>
 #include <furi_hal_usb_hid.h>
 
-#define TAG "MouseJiggler"
+#define TAG "MouseKeyboardJiggler"
 
 typedef enum {
     MouseJigglerEventTypeTick,
@@ -47,15 +47,14 @@ static void mousejiggler_render_callback(Canvas* canvas, void* ctx) {
 
     canvas_clear(canvas);
     
-    // Header with icon
+    // Header
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 25, 12, "🖱️ Mouse and keyboard Jiggler");
+    canvas_draw_str(canvas, 6, 12, "Mouse and keyboard Jiggler");
     
     // Status indicator
     canvas_set_font(canvas, FontSecondary);
     if(state->running) {
-        canvas_draw_icon(canvas, 2, 2, &I_ButtonUp_7x4);
-        canvas_draw_str(canvas, 12, 10, "ACTIVE");
+        canvas_draw_str(canvas, 2, 10, "ACTIVE");
         
         // Mode display with icons
         canvas_draw_str(canvas, 2, 25, "Mode:");
@@ -83,8 +82,7 @@ static void mousejiggler_render_callback(Canvas* canvas, void* ctx) {
         canvas_draw_str(canvas, 2, 57, stats_str);
         
     } else {
-        canvas_draw_icon(canvas, 2, 2, &I_ButtonDown_7x4);
-        canvas_draw_str(canvas, 12, 10, "STOPPED");
+        canvas_draw_str(canvas, 2, 10, "STOPPED");
         
         canvas_draw_str(canvas, 2, 25, "Press OK to start");
         canvas_draw_str(canvas, 2, 37, "Left/Right: Change mode");
@@ -205,7 +203,7 @@ int32_t mousejiggler_app(void* p) {
                             } else {
                                 state->mode = ModeWASDKeys;
                             }
-                            notification_message(state->notifications, &sequence_click);
+                            notification_message(state->notifications, &sequence_success);
                             furi_mutex_release(state->mutex);
                             break;
                             
@@ -218,7 +216,7 @@ int32_t mousejiggler_app(void* p) {
                             } else {
                                 state->mode = ModeMouseJiggle;
                             }
-                            notification_message(state->notifications, &sequence_click);
+                            notification_message(state->notifications, &sequence_success);
                             furi_mutex_release(state->mutex);
                             break;
                             

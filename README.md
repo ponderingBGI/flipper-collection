@@ -15,4 +15,5 @@ A curated collection of Flipper Zero apps.
 - BadUSB: packages/badusb/
 - NFC: packages/nfc/
 
-See DEVELOPMENT.md for the build/test workflow.
+See DEVELOPMENT.md for the build/test workflow. A hardware-free validation
+pipeline is provided via ``make test``.

@@ -11,7 +11,7 @@ App(
     fap_weburl="https://github.com/",
     name="Mouse and keyboard Jiggler",
     order=50,
-    requires=["gui", "storage"],
+    requires=["gui", "notification", "storage"],
     stack_size=8 * 1024,
 )
 

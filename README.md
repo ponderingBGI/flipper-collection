@@ -1,6 +1,6 @@
 # Flipper Collection
 
-A curated collection of Flipper Zero apps.
+Personal Flipper Zero scripts and apps - quick & dirty solutions I built for myself. Use, modify, or improve as you like.
 
 ## Apps
 - apps/mouse-jiggler: Mouse and keyboard Jiggler
@@ -15,5 +15,5 @@ A curated collection of Flipper Zero apps.
 - BadUSB: packages/badusb/
 - NFC: packages/nfc/
 
-See DEVELOPMENT.md for the build/test workflow. A hardware-free validation
-pipeline is provided via ``make test``.
+See DEVELOPMENT.md for the build/test workflow.
+Pipeline is provided via `make test`.

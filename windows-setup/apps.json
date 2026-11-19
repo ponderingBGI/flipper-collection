@@ -1,0 +1,166 @@
+{
+  "$comment": "Apps installed by setup.ps1 via winget. Set enabled:false to skip a group, or run setup.ps1 -Groups core,dev. Prefix msstore: for Microsoft Store IDs.",
+  "groups": {
+    "core": {
+      "enabled": true,
+      "description": "Shell, terminal, git, browsers, runtimes and everyday tools",
+      "packages": [
+        "Microsoft.VCRedist.2015+.x64",
+        "Git.Git",
+        "GitHub.cli",
+        "Microsoft.PowerShell",
+        "Microsoft.WindowsTerminal",
+        "JanDeDobbeleer.OhMyPosh",
+        "7zip.7zip",
+        "Notepad++.Notepad++",
+        "Microsoft.VisualStudioCode",
+        "Microsoft.PowerToys",
+        "MartiCliment.UniGetUI",
+        "Google.Chrome.EXE",
+        "Mozilla.Firefox",
+        "Zen-Team.Zen-Browser",
+        "VideoLAN.VLC",
+        "Python.Launcher",
+        "Python.Python.3.12",
+        "Python.Python.3.14",
+        "OpenJS.NodeJS.LTS",
+        "pnpm.pnpm",
+        "GoLang.Go",
+        "Rustlang.Rustup",
+        "zig.zig",
+        "LLVM.LLVM",
+        "Neovim.Neovim",
+        "Gyan.FFmpeg",
+        "aria2.aria2",
+        "Byron.dua-cli",
+        "WinDirStat.WinDirStat",
+        "DuongDieuPhap.ImageGlass",
+        "PhapDieuDuong.ExifGlass"
+      ]
+    },
+    "privacy-sync": {
+      "enabled": true,
+      "description": "Proton, passwords, sync and VPN/mesh networking",
+      "packages": [
+        "Proton.ProtonDrive",
+        "Proton.ProtonPass",
+        "Proton.ProtonMail",
+        "Proton.ProtonMailBridge",
+        "Proton.ProtonVPN",
+        "Proton.ProtonAuthenticator",
+        "Bitwarden.Bitwarden",
+        "Bitwarden.CLI",
+        "BillStewart.SyncthingWindowsSetup",
+        "Seafile.Seadrive",
+        "Tailscale.Tailscale",
+        "Netbird.Netbird",
+        "WireGuard.WireGuard",
+        "LocalSend.LocalSend",
+        "Google.QuickShare",
+        "Google.GoogleDrive"
+      ]
+    },
+    "dev": {
+      "enabled": true,
+      "description": "Editors, AI tools, containers and SDKs",
+      "packages": [
+        "Docker.DockerDesktop",
+        "Anysphere.Cursor",
+        "Codeium.Windsurf",
+        "Google.AntigravityIDE",
+        "ZedIndustries.Zed",
+        "JetBrains.Toolbox",
+        "Warp.Warp",
+        "Anomaly.OpenCode.Desktop",
+        "T3Tools.T3Code",
+        "Anthropic.Claude",
+        "msstore:9PLM9XGG6VKS",
+        "GitHub.GitHubDesktop",
+        "Microsoft.VisualStudio.2022.BuildTools",
+        "Microsoft.VisualStudio.2022.Community",
+        "Google.AndroidStudio",
+        "msstore:9PPGN2WM50QB",
+        "Amazon.AWSCLI",
+        "Stripe.StripeCli",
+        "PostgreSQL.PostgreSQL.17",
+        "Anaconda.Miniconda3",
+        "PuTTY.PuTTY",
+        "WiresharkFoundation.Wireshark",
+        "Microsoft.WinDbg"
+      ]
+    },
+    "creative": {
+      "enabled": true,
+      "description": "Film, audio, 3D, design, notes and writing",
+      "packages": [
+        "OBSProject.OBSStudio",
+        "BlenderFoundation.Blender",
+        "Audacity.Audacity",
+        "Upscayl.Upscayl",
+        "Canva.Affinity",
+        "Figma.Figma",
+        "Descript.Descript",
+        "Musescore.Musescore",
+        "Muse.MuseHub",
+        "Autodesk.Fusion",
+        "Bambulab.Bambustudio",
+        "msstore:9PF6ZX8RJ8Q2",
+        "Obsidian.Obsidian",
+        "DigitalScholar.Zotero",
+        "TheDocumentFoundation.LibreOffice",
+        "DeepL.DeepL",
+        "WisprFlow.WisprFlow",
+        "cjpais.Handy",
+        "Jan.Jan",
+        "Google.EarthPro",
+        "Perplexity.Comet"
+      ]
+    },
+    "comms": {
+      "enabled": true,
+      "description": "Chat, calls and remote access",
+      "packages": [
+        "Discord.Discord",
+        "OpenWhisperSystems.Signal",
+        "Element.Element",
+        "Threema.Threema.2",
+        "SlackTechnologies.Slack",
+        "Zoom.Zoom.EXE",
+        "msstore:XPDCJ80KGNRVSS",
+        "TeamViewer.TeamViewer",
+        "Parsec.Parsec"
+      ]
+    },
+    "hardware": {
+      "enabled": true,
+      "description": "Device tools and drivers (Flipper, drones, audio interfaces, tablets, VR)",
+      "packages": [
+        "FlipperDevicesInc.qFlipper",
+        "RaspberryPiFoundation.RaspberryPiImager",
+        "Balena.Etcher",
+        "DJI.DJIAssistant2.ConsumerDronesSeries",
+        "ExpressLRS.ExpressLRS-Configurator",
+        "Logitech.OptionsPlus",
+        "Wacom.WacomTabletDriver",
+        "FocusriteAudioEngineeringLtd.FocusriteControl2",
+        "MOTU.MSeries",
+        "RODE.RODECentral",
+        "Meta.Oculus",
+        "VirtualDesktop.Streamer"
+      ]
+    },
+    "games": {
+      "enabled": true,
+      "description": "Game launchers",
+      "packages": [
+        "Valve.Steam",
+        "EpicGames.EpicGamesLauncher",
+        "RockstarGames.Launcher",
+        "Ubisoft.Connect",
+        "Roblox.Roblox",
+        "WeMod.WeMod",
+        "BlueStack.BlueStacks"
+      ]
+    }
+  }
+}

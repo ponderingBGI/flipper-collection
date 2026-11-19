@@ -3,7 +3,7 @@
 One command (or one Flipper plug-in) that sets a fresh Windows 10/11 PC up the way I like it.
 
 ```powershell
-irm https://raw.githubusercontent.com/ponderingBGI/flipper-collection/main/windows-setup/go.ps1 | iex
+irm https://raw.githubusercontent.com/PonderingAI/flipper-collection/main/windows-setup/go.ps1 | iex
 ```
 
 Flipper: [`packages/badusb/windows-setup.txt`](../packages/badusb/windows-setup.txt). Its README covers the keyboard layout.

@@ -1,9 +1,9 @@
 # Bootstrap for windows-setup. Usage (admin PowerShell, or Win+R):
-#   irm https://raw.githubusercontent.com/ponderingBGI/flipper-collection/main/windows-setup/go.ps1 | iex
+#   irm https://raw.githubusercontent.com/PonderingAI/flipper-collection/main/windows-setup/go.ps1 | iex
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072   # TLS 1.2 on older Windows 10
-$repo = 'ponderingBGI/flipper-collection'; $branch = 'main'
+$repo = 'PonderingAI/flipper-collection'; $branch = 'main'
 
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)

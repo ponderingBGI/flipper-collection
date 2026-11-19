@@ -78,7 +78,7 @@ foreach ($e in $entries) {
         $new = @($ids | Where-Object { $_ -notin $existing })
         if ($new) {
             Act "block device ids: $($new -join ', ')" {
-                New-Item -Path $denyKey -Force | Out-Null
+                if (-not (Test-Path $denyKey)) { New-Item -Path $denyKey -Force | Out-Null }   # -Force on an existing key would wipe it
                 Set-ItemProperty $restr -Name DenyDeviceIDs -Value 1 -Type DWord
                 Set-ItemProperty $restr -Name DenyDeviceIDsRetroactive -Value 0 -Type DWord   # never touches other installed devices
                 $n = (@((Get-ItemProperty $denyKey).PSObject.Properties | Where-Object { $_.Name -match '^\d+$' } | ForEach-Object { [int]$_.Name }) + 0 | Measure-Object -Maximum).Maximum
@@ -145,7 +145,10 @@ foreach ($e in $entries) {
     Get-Process | Where-Object { $_.Name -match $e.match } | Stop-Process -Force -ErrorAction SilentlyContinue
     foreach ($f in @($e.folders | Where-Object { $_ -match '^[\w .-]+$' })) {   # plain names only, never a path
         foreach ($dir in "$env:ProgramFiles\$f", "${env:ProgramFiles(x86)}\$f", "$env:ProgramData\$f", "$env:LOCALAPPDATA\$f", "$env:SystemRoot\System32\config\systemprofile\AppData\Local\$f") {
-            if (Test-Path $dir) { $found = $true; Act "delete $dir" { Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue } }
+            if (Test-Path $dir) {
+                $found = $true
+                Act "delete $dir" { cmd /c "rd /s /q `"$dir`"" 2>$null; if (Test-Path $dir) { Say "could not delete $dir" Yellow } }
+            }
         }
     }
     if (-not $found) { Say '[ok]   not on this PC' DarkGray }

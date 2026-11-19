@@ -336,5 +336,48 @@
     "RemoveAllDesktopShortcuts": true,
     "AskToDeleteNewDesktopShortcuts": true,
     "UpdatesCheckInterval": "172800"
-  }
+  },
+  "blocked": [
+    {
+      "name": "Tobii Experience",
+      "match": "Tobii",
+      "folders": [
+        "Tobii"
+      ],
+      "swc": [
+        "SWC\\AY5P",
+        "SWC\\A770",
+        "SWC\\ALENOVOYX80",
+        "SWC\\ALENOVOYXX0",
+        "SWC\\AM90A2"
+      ],
+      "why": "Lenovo Legion eye tracking; Windows Update reinstalls it through the webcam's driver"
+    },
+    {
+      "name": "Logi Download Assistant",
+      "match": "Logi ?Download ?Assistant",
+      "swc": [
+        "SWC\\VID_046D&PID_0001"
+      ],
+      "why": "Logitech nag installer pushed through Windows Update; Logi Options+ is unaffected",
+      "folders": [
+        "LogiDownloadAssistant"
+      ]
+    },
+    {
+      "name": "McAfee",
+      "match": "McAfee",
+      "why": "preinstalled trialware"
+    },
+    {
+      "name": "Norton",
+      "match": "^Norton",
+      "why": "preinstalled trialware"
+    },
+    {
+      "name": "WildTangent Games",
+      "match": "WildTangent",
+      "why": "preinstalled trialware"
+    }
+  ]
 }

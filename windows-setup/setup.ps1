@@ -186,12 +186,16 @@ Invoke-Safe 'Debloat' {
         'Microsoft.PowerAutomateDesktop', 'Microsoft.Todos', 'Microsoft.WindowsFeedbackHub', 'Microsoft.WindowsMaps',
         'Microsoft.ZuneMusic', 'Microsoft.ZuneVideo', 'MicrosoftTeams', 'MSTeams', 'Microsoft.Copilot', 'Microsoft.Windows.Ai.Copilot.Provider',
         'Microsoft.OutlookForWindows', 'microsoft.windowscommunicationsapps', 'Microsoft.549981C3F5F10', 'MicrosoftCorporationII.MicrosoftFamily',
-        'Microsoft.MicrosoftJournal', 'Microsoft.Office.OneNote', 'Microsoft.SkypeApp', 'Microsoft.YourPhone.Ads', 'Microsoft.Wallet'
+        'Microsoft.MicrosoftJournal', 'Microsoft.Office.OneNote', 'Microsoft.SkypeApp', 'Microsoft.YourPhone.Ads', 'Microsoft.Wallet',
+        # OEM / Store trialware and promo apps
+        'king.com.*', '*CandyCrush*', 'Disney.*', 'Facebook.*', '*Instagram*', 'BytedancePte.Ltd.TikTok', 'AmazonVideo.PrimeVideo',
+        'Amazon.com.Amazon', '*McAfee*', '*Norton*', '*WildTangent*', 'AdobeSystemsIncorporated.AdobePhotoshopExpress',
+        '*ExpressVPN*', '*Booking*', '*DropboxOEM*', '*.Netflix'
     )
     $isAdmin = Test-Admin   # -AllUsers / provisioned lookups need admin (only matters for -DryRun)
     foreach ($j in $junk) {
         $pkgs = @(if ($isAdmin) { Get-AppxPackage -Name $j -AllUsers -ErrorAction SilentlyContinue } else { Get-AppxPackage -Name $j -ErrorAction SilentlyContinue })
-        $prov = @(if ($isAdmin) { Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object DisplayName -eq $j })
+        $prov = @(if ($isAdmin) { Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object DisplayName -like $j })
         if ($pkgs.Count -eq 0 -and $prov.Count -eq 0) { continue }
         if ($DryRun) { Write-Host "    [dry]  remove $j"; continue }
         $pkgs | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue }
@@ -221,6 +225,10 @@ Invoke-Safe 'Debloat' {
     Set-Reg 'HKLM:\SOFTWARE\Policies\Microsoft\Dsh' 'AllowNewsAndInterests' 0
     Write-Ok 'debloat done'
 }
+
+# ---------------------------------------------------------------- 2b. Driver-delivered bloat (Tobii etc.)
+Write-Step "Removing and blocking software Windows Update pushes through drivers"
+Invoke-Safe 'Driver bloat' { & (Join-Path $Root 'block-bloat.ps1') -DryRun:$DryRun }
 
 # ---------------------------------------------------------------- 3. Windows settings
 Write-Step "Windows settings (dark mode, Explorer, taskbar, keyboard, power)"

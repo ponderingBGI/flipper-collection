@@ -1,5 +1,8 @@
 # Bootstrap for windows-setup. Usage (admin PowerShell, or Win+R):
 #   irm https://raw.githubusercontent.com/PonderingAI/flipper-collection/main/windows-setup/go.ps1 | iex
+# With options:
+#   & ([scriptblock]::Create((irm https://raw.githubusercontent.com/PonderingAI/flipper-collection/main/windows-setup/go.ps1))) -SkipApps
+param([switch]$SkipApps, [string[]]$Groups, [switch]$DryRun)
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072   # TLS 1.2 on older Windows 10
@@ -7,8 +10,13 @@ $repo = 'PonderingAI/flipper-collection'; $branch = 'main'
 
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)
+$opts = @()
+if ($SkipApps) { $opts += '-SkipApps' }
+if ($DryRun) { $opts += '-DryRun' }
+if ($Groups) { $opts += @('-Groups', ($Groups -join ',')) }
 if (-not $isAdmin) {
-    Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://raw.githubusercontent.com/$repo/$branch/windows-setup/go.ps1 | iex`""
+    $cmd = "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/$repo/$branch/windows-setup/go.ps1))) $($opts -join ' ')"
+    Start-Process powershell.exe -Verb RunAs -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $cmd
     return
 }
 
@@ -23,4 +31,4 @@ foreach ($i in 1..3) {
 }
 Expand-Archive $zip -DestinationPath $work -Force
 $setup = Get-ChildItem $work -Recurse -Filter setup.ps1 | Where-Object { $_.Directory.Name -eq 'windows-setup' } | Select-Object -First 1
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $setup.FullName
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $setup.FullName @opts

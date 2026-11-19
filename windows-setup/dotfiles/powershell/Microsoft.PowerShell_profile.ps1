@@ -5,51 +5,9 @@ if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
     oh-my-posh init pwsh --config $ompTheme | Invoke-Expression
 }
 
-# dev: open a 4-pane Windows Terminal session on Hal (needs the dev-hal helper inside WSL)
-function Start-DevSession {
-    [CmdletBinding()]
-    param(
-        [ValidateSet("Auto", "Lan", "Tail")]
-        [string]$Target = "Auto",
-        [switch]$Check
-    )
-
-    $distro = "Ubuntu-24.04"
-    $helper = "/home/wsl/.local/bin/dev-hal"
-    $mode = $Target.ToLowerInvariant()
-
-    if ($Check) {
-        & wsl.exe -d $distro -- $helper check $mode
-        return
-    }
-
-    $selectedTarget = & wsl.exe -d $distro -- $helper select $mode
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($selectedTarget)) {
-        Write-Error "Could not connect to Hal. Run 'dev -Check' for route diagnostics."
-        return
-    }
-
-    $selectedTarget = $selectedTarget.Trim()
-    $wtArgs = @(
-        "--window", "new",
-        "new-tab", "--title", "main",
-        "wsl.exe", "-d", $distro, "--", $helper, "pane", $selectedTarget, "main",
-        ";",
-        "split-pane", "-V", "--title", "code",
-        "wsl.exe", "-d", $distro, "--", $helper, "pane", $selectedTarget, "code",
-        ";",
-        "split-pane", "-H", "--title", "logs",
-        "wsl.exe", "-d", $distro, "--", $helper, "pane", $selectedTarget, "logs",
-        ";",
-        "move-focus", "left",
-        ";",
-        "split-pane", "-H", "--title", "misc",
-        "wsl.exe", "-d", $distro, "--", $helper, "pane", $selectedTarget, "misc"
-    )
-
-    & wt.exe @wtArgs
-}
-Set-Alias dev Start-DevSession
+# devhost / dev: SSH + tmux workspaces (see ~\.config\dev-hosts\DevHosts.ps1; `devhost add` to set one up)
+$devHosts = Join-Path $HOME '.config\dev-hosts\DevHosts.ps1'
+if (Test-Path $devHosts) { . $devHosts }
 
 function Start-Claude { claude --dangerously-skip-permissions @args }
 Set-Alias cc Start-Claude

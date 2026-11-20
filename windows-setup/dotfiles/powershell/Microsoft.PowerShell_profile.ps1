@@ -9,6 +9,10 @@ if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
 $devHosts = Join-Path $HOME '.config\dev-hosts\DevHosts.ps1'
 if (Test-Path $devHosts) { . $devHosts }
 
+# omarchy: restart into Omarchy once (dual boot)
+$dualBoot = Join-Path $HOME '.config\dualboot\DualBoot.ps1'
+if (Test-Path $dualBoot) { . $dualBoot }
+
 function Start-Claude { claude --dangerously-skip-permissions @args }
 Set-Alias cc Start-Claude
 

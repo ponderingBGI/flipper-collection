@@ -14,6 +14,10 @@ Personal Flipper Zero scripts and apps - quick & dirty solutions I built for mys
 - **windows-setup**: plug in a fresh Windows PC and get my whole setup (no OneDrive, debloated, apps, oh-my-posh, terminal, WSL)
   - See: packages/badusb/windows-setup.txt and windows-setup/README.md
 
+## Omarchy dual boot
+- omarchy-setup/: one command after installing Omarchy next to Windows (reboot-to-Windows, shared C:, devhost, Bluetooth sync)
+  - See: omarchy-setup/README.md
+
 ## Downloads
 - Packaged apps ready to drag onto your Flipper: downloads/
 

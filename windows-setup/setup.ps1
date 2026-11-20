@@ -507,6 +507,13 @@ Invoke-Safe 'Dotfiles' {
     }
     Write-Ok "devhost -> $dh"
 
+    # Dual boot helpers (`omarchy` = restart into Omarchy once)
+    $db = Join-Path $env:USERPROFILE '.config\dualboot'
+    if (-not $DryRun) {
+        New-Item -ItemType Directory -Force -Path $db | Out-Null
+        Copy-Item (Join-Path $Dot 'dualboot\DualBoot.ps1'), (Join-Path $Dot 'dualboot\reboot-to-omarchy.ps1') $db -Force
+    }
+
     # git
     $gitcfg = Join-Path $env:USERPROFILE '.gitconfig'
     if (-not $DryRun) {

@@ -507,11 +507,16 @@ Invoke-Safe 'Dotfiles' {
     }
     Write-Ok "devhost -> $dh"
 
-    # Dual boot helpers (`omarchy` = restart into Omarchy once)
+    # Dual boot helpers (`omarchy` = restart into Omarchy). The elevated parts only go in once Omarchy is installed.
     $db = Join-Path $env:USERPROFILE '.config\dualboot'
     if (-not $DryRun) {
         New-Item -ItemType Directory -Force -Path $db | Out-Null
-        Copy-Item (Join-Path $Dot 'dualboot\DualBoot.ps1'), (Join-Path $Dot 'dualboot\reboot-to-omarchy.ps1') $db -Force
+        Copy-Item (Join-Path $Dot 'dualboot\DualBoot.ps1') $db -Force
+        Remove-Item (Join-Path $db 'reboot-to-omarchy.ps1') -ErrorAction SilentlyContinue   # now lives in Program Files
+        if ((bcdedit /enum firmware | Out-String) -match '(?im)^description\s+.*(Omarchy|Limine)') {
+            & (Join-Path $Dot 'dualboot\install-dualboot.ps1') -From (Join-Path $Dot 'dualboot') | Out-Null
+            Write-Ok 'dual boot: omarchy command, Ctrl+Alt+O, restarts stay in Windows'
+        }
     }
 
     # git

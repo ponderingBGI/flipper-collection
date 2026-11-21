@@ -6,52 +6,80 @@
 #   devhost remove name    forget a host (leaves ~/.ssh/config alone)
 #   <command> [-Target Lan|Tail] [-Check] [-Here]    e.g. `dev` opens Hal in a new window with 4 tmux panes
 #
-# Config: ~\.config\dev-hosts\hosts.json   SSH runs inside WSL (ControlMaster keeps panes on one connection).
+# Config: ~\.config\dev-hosts\hosts.json. Uses Windows' built-in OpenSSH (no WSL needed).
 # Works in Windows PowerShell 5.1 and PowerShell 7.
 
-$script:DevHostsDir = Join-Path $HOME '.config\dev-hosts'
+$script:DevHostsDir  = Join-Path $HOME '.config\dev-hosts'
 $script:DevHostsFile = Join-Path $script:DevHostsDir 'hosts.json'
-$script:DevConnectInstalled = $false
+$script:SshDir       = Join-Path $HOME '.ssh'
+$script:SshConfig    = Join-Path $script:SshDir 'config'
+$script:CacheSeconds = 120
+
+function Get-DevSsh {
+    $c = Get-Command ssh.exe -ErrorAction SilentlyContinue
+    if ($c) { return $c.Source }
+    $p = "$env:SystemRoot\System32\OpenSSH\ssh.exe"
+    if (Test-Path $p) { return $p }
+    throw 'OpenSSH client not found. Install it: Settings > System > Optional features > OpenSSH Client.'
+}
 
 function Get-DevHostConfig {
-    if (Test-Path $script:DevHostsFile) {
-        $cfg = Get-Content $script:DevHostsFile -Raw | ConvertFrom-Json
-    } else {
-        $cfg = [pscustomobject]@{ distro = 'Ubuntu-24.04'; helper = ''; hosts = @() }
-    }
-    if (-not $cfg.hosts) { $cfg.hosts = @() }
+    if (Test-Path $script:DevHostsFile) { $cfg = Get-Content $script:DevHostsFile -Raw | ConvertFrom-Json }
+    else { $cfg = [pscustomobject]@{ hosts = @() } }
+    if (-not $cfg.hosts) { $cfg | Add-Member -NotePropertyName hosts -NotePropertyValue @() -Force }
     $cfg.hosts = @($cfg.hosts)
     $cfg
 }
 
 function Save-DevHostConfig($cfg) {
     New-Item -ItemType Directory -Force -Path $script:DevHostsDir | Out-Null
-    $cfg | ConvertTo-Json -Depth 6 | Set-Content $script:DevHostsFile -Encoding UTF8
+    $clean = [pscustomobject]@{ hosts = @($cfg.hosts) }      # drops the old WSL fields (distro, helper)
+    $clean | ConvertTo-Json -Depth 6 | Set-Content $script:DevHostsFile -Encoding UTF8
 }
 
-function Invoke-DevWsl {
-    param([string]$Distro, [string[]]$Arguments)
-    & wsl.exe -d $Distro -e @Arguments   # -e: run directly, no extra shell expanding our $vars
+# Routes are "NAME-lan" and "NAME-tail" Host entries in ~/.ssh/config, tried in that order.
+function Get-DevRoutes([string]$Name) {
+    if (-not (Test-Path $script:SshConfig)) { return @() }
+    $hostsDeclared = Select-String -Path $script:SshConfig -Pattern '^\s*Host\s+(.+)$' | ForEach-Object { $_.Matches[0].Groups[1].Value -split '\s+' }
+    @("$Name-lan", "$Name-tail") | Where-Object { $hostsDeclared -contains $_ }
 }
 
-# Copies dev-connect into WSL (~/.local/bin) when missing or changed. Returns its absolute Linux path.
-function Install-DevConnect($cfg) {
-    $src = Join-Path $script:DevHostsDir 'dev-connect'
-    if (-not (Test-Path $src)) { throw "Missing $src (re-run windows-setup, or copy it from the flipper-collection repo)." }
-    $distros = (wsl.exe -l -q 2>$null) -replace "`0", '' | Where-Object { $_.Trim() }
-    if ($distros -notcontains $cfg.distro) { throw "WSL distro '$($cfg.distro)' is not installed. Run: wsl --install -d $($cfg.distro)" }
-    if ($script:DevConnectInstalled -and $cfg.helper) { return $cfg.helper }
+function Test-DevRoute([string]$Route) {
+    $timeout = if ($Route -like '*-lan') { 3 } else { 12 }
+    $argsList = @('-n', '-o', 'BatchMode=yes', '-o', "ConnectTimeout=$timeout", '-o', 'ConnectionAttempts=1', $Route, 'true')
+    $p = Start-Process (Get-DevSsh) -ArgumentList $argsList -NoNewWindow -PassThru -RedirectStandardError "$env:TEMP\devhost-probe.err"
+    if (-not $p.WaitForExit(($timeout + 3) * 1000)) { try { $p.Kill() } catch {}; return $false }
+    $p.ExitCode -eq 0
+}
 
-    # Windows PowerShell mangles double quotes in native arguments, so the path travels via WSLENV (/p = translate path)
-    $env:DEVCONNECT_SRC = (Resolve-Path $src).Path
-    $env:WSLENV = (@($env:WSLENV -split ':' | Where-Object { $_ -and $_ -notlike 'DEVCONNECT_SRC*' }) + 'DEVCONNECT_SRC/p') -join ':'
-    $sh = "d=`$HOME/.local/bin; mkdir -p `$d && tr -d '\r' < `$DEVCONNECT_SRC > `$d/dev-connect.new && chmod 755 `$d/dev-connect.new && " +
-          "{ cmp -s `$d/dev-connect.new `$d/dev-connect && rm `$d/dev-connect.new || mv `$d/dev-connect.new `$d/dev-connect; } && printf %s `$d/dev-connect"
-    $helper = (Invoke-DevWsl $cfg.distro @('sh', '-c', $sh) | Out-String).Trim()
-    if (-not $helper) { throw 'Could not install dev-connect into WSL.' }
-    $script:DevConnectInstalled = $true
-    if ($cfg.helper -ne $helper) { $cfg.helper = $helper; Save-DevHostConfig $cfg }
-    $helper
+function Select-DevRoute([string]$Name, [string]$Mode = 'auto', [switch]$NoCache) {
+    $cache = Join-Path $env:TEMP "devhost-route-$Name"
+    if (-not $NoCache -and $Mode -eq 'auto' -and (Test-Path $cache) -and ((Get-Date) - (Get-Item $cache).LastWriteTime).TotalSeconds -lt $script:CacheSeconds) {
+        return (Get-Content $cache -Raw).Trim()
+    }
+    $routes = @(Get-DevRoutes $Name)
+    if ($Mode -eq 'lan')  { $routes = @($routes | Where-Object { $_ -like '*-lan' }) }
+    if ($Mode -eq 'tail') { $routes = @($routes | Where-Object { $_ -like '*-tail' }) }
+    if (-not $routes) { throw "No routes for '$Name' in ~/.ssh/config. Run: devhost add" }
+    foreach ($r in $routes) { if (Test-DevRoute $r) { Set-Content $cache $r; return $r } }
+    throw "$Name is unreachable ($Mode). Run: devhost check $Name"
+}
+
+function Show-DevCheck([string]$Name, [string]$Mode = 'auto') {
+    $routes = @(Get-DevRoutes $Name)
+    if ($Mode -eq 'lan')  { $routes = @($routes | Where-Object { $_ -like '*-lan' }) }
+    if ($Mode -eq 'tail') { $routes = @($routes | Where-Object { $_ -like '*-tail' }) }
+    if (-not $routes) { Write-Host "  no routes for $Name in ~/.ssh/config"; return }
+    foreach ($r in $routes) {
+        $sw = [Diagnostics.Stopwatch]::StartNew(); $ok = Test-DevRoute $r
+        "{0,-16} {1,-7} {2,5} ms" -f $r, $(if ($ok) { 'OK' } else { 'FAILED' }), $sw.ElapsedMilliseconds
+    }
+}
+
+# What each pane runs: ssh straight into tmux. The session name is checked, so nothing odd reaches the remote shell.
+function Get-DevPaneCommand([string]$Route, [string]$Session) {
+    if ($Session -notmatch '^[A-Za-z0-9_.-]+$') { throw "Invalid tmux session name: $Session" }
+    @((Get-DevSsh), '-tt', $Route, "tmux -u new-session -A -s $Session")
 }
 
 # Pane layout shared by the `dev` command and the Terminal hotkey: up to 4 panes in a 2x2 grid.
@@ -75,13 +103,9 @@ function Start-DevSession {
     $cfg = Get-DevHostConfig
     $h = $cfg.hosts | Where-Object name -eq $Name | Select-Object -First 1
     if (-not $h) { Write-Error "Unknown host '$Name'. Run: devhost add"; return }
-    $helper = Install-DevConnect $cfg
     $mode = $Target.ToLowerInvariant()
-
-    if ($Check) { Invoke-DevWsl $cfg.distro @($helper, 'check', $Name, $mode); return }
-
-    $route = (Invoke-DevWsl $cfg.distro @($helper, 'select', $Name, $mode) | Out-String).Trim()
-    if ($LASTEXITCODE -ne 0 -or -not $route) { Write-Error "Could not reach $Name. Try: $($h.commands[0]) -Check"; return }
+    if ($Check) { Show-DevCheck $Name $mode; return }
+    try { $route = Select-DevRoute $Name $mode -NoCache:($mode -ne 'auto') } catch { Write-Error $_; return }
 
     $wtArgs = @('--window', $(if ($Here) { '0' } else { 'new' }))
     foreach ($step in (Get-DevLayout $h.sessions)) {
@@ -91,7 +115,7 @@ function Start-DevSession {
             'split' { $wtArgs += @('split-pane', $(if ($step.dir -eq 'right') { '-V' } else { '-H' }), '--title', $step.session) }
             'focus' { $wtArgs += @('move-focus', $step.dir) }
         }
-        if ($step.kind -ne 'focus') { $wtArgs += @('wsl.exe', '-d', $cfg.distro, '--', $helper, 'pane', $route, $step.session) }
+        if ($step.kind -ne 'focus') { $wtArgs += Get-DevPaneCommand $route $step.session }
     }
     & wt.exe @wtArgs
 }
@@ -107,12 +131,13 @@ function Register-DevHostCommands {
     }
 }
 
-# Writes one Windows Terminal action + keybinding per host that has a hotkey. Old devhost entries are replaced.
+# Windows Terminal hotkey: one action per host; each pane runs dev-attach.ps1 (picks the route, then ssh -> tmux).
 function Update-DevHostTerminal($cfg) {
     $wtFile = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'
     if (-not (Test-Path $wtFile)) { Write-Warning 'Windows Terminal settings not found; hotkeys skipped.'; return }
     try { $wt = Get-Content $wtFile -Raw | ConvertFrom-Json }
     catch { Write-Warning "Could not parse Terminal settings (comments?). Hotkeys skipped: $($_.Exception.Message)"; return }
+    $attach = Join-Path $script:DevHostsDir 'dev-attach.ps1'
 
     $actions = @($wt.actions | Where-Object { $_ -and "$($_.id)" -notlike 'User.devhost.*' })
     $keys = @($wt.keybindings | Where-Object { $_ -and "$($_.id)" -notlike 'User.devhost.*' })
@@ -122,7 +147,7 @@ function Update-DevHostTerminal($cfg) {
         if ($clash) { Write-Warning "$($h.hotkey) is already used by $($clash.id); not binding $($h.name)."; continue }
         $sub = @()
         foreach ($step in (Get-DevLayout $h.sessions)) {
-            $cmd = "wsl.exe -d $($cfg.distro) -- $($cfg.helper) attach $($h.name) $($step.session)"
+            $cmd = "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$attach`" $($h.name) $($step.session)"
             switch ($step.kind) {
                 'tab'   { $sub += [ordered]@{ action = 'newTab'; commandline = $cmd; tabTitle = $step.session } }
                 'split' { $sub += [ordered]@{ action = 'splitPane'; split = $step.dir; commandline = $cmd; tabTitle = $step.session } }
@@ -139,6 +164,25 @@ function Update-DevHostTerminal($cfg) {
     [IO.File]::WriteAllText($wtFile, ($wt | ConvertTo-Json -Depth 20), (New-Object Text.UTF8Encoding $false))   # Terminal wants UTF-8 without BOM
 }
 
+# Writes (or replaces) the managed "# >>> devhost NAME" block in ~/.ssh/config.
+function Set-DevSshBlock([string]$Name, [string]$User, [string]$Port, [string]$Lan, [string]$Tail, [string]$KeyFile) {
+    New-Item -ItemType Directory -Force -Path $script:SshDir | Out-Null
+    $begin = "# >>> devhost $Name"; $end = "# <<< devhost $Name"
+    $lines = if (Test-Path $script:SshConfig) { @(Get-Content $script:SshConfig) } else { @() }
+    $out = New-Object System.Collections.Generic.List[string]; $skip = $false
+    foreach ($l in $lines) { if ($l -eq $begin) { $skip = $true }; if (-not $skip) { $out.Add($l) }; if ($l -eq $end) { $skip = $false } }
+    $keyRel = '~/.ssh/' + (Split-Path $KeyFile -Leaf)
+    $block = @($begin, '# managed by `devhost add`; edits here get replaced')
+    $both = @()
+    if ($Lan)  { $block += "Host $Name-lan", "  HostName $Lan";   $both += "$Name-lan" }
+    if ($Tail) { $block += "Host $Name-tail", "  HostName $Tail"; $both += "$Name-tail" }
+    $block += "Host $($both -join ' ')", "  User $User", "  Port $Port", "  HostKeyAlias $Name", "  IdentityFile $keyRel", '  IdentitiesOnly yes',
+              '  BatchMode yes', '  StrictHostKeyChecking accept-new', '  ConnectTimeout 6', '  ServerAliveInterval 15', '  ServerAliveCountMax 4', '  LogLevel ERROR', $end
+    if ($out.Count -and $out[$out.Count - 1] -ne '') { $out.Add('') }
+    foreach ($b in $block) { $out.Add($b) }
+    [IO.File]::WriteAllLines($script:SshConfig, [string[]]$out, (New-Object Text.UTF8Encoding $false))
+}
+
 function Read-Default([string]$Prompt, [string]$Default) {
     $suffix = if ($Default) { " [$Default]" } else { '' }
     $v = Read-Host "$Prompt$suffix"
@@ -147,19 +191,17 @@ function Read-Default([string]$Prompt, [string]$Default) {
 
 function Add-DevHost {
     $cfg = Get-DevHostConfig
+    $ssh = Get-DevSsh
     Write-Host "`nNew SSH workspace host. Enter keeps the [default].`n" -ForegroundColor Cyan
-
     do { $name = (Read-Default 'Short name (e.g. hal)' '').ToLowerInvariant() } until ($name -match '^[a-z0-9][a-z0-9_-]*$')
     $old = $cfg.hosts | Where-Object name -eq $name | Select-Object -First 1
 
-    $helper = Install-DevConnect $cfg
-    $routes = @(Invoke-DevWsl $cfg.distro @($helper, 'routes', $name))
+    $routes = @(Get-DevRoutes $name)
     $writeSsh = $true
     if ($routes.Count) {
         Write-Host "~/.ssh/config already has: $($routes -join ', ')"
         $writeSsh = (Read-Default 'Re-enter the SSH details? (y/N)' 'n') -match '^[yY]'
     }
-
     if ($writeSsh) {
         $okAddr = '^[A-Za-z0-9._:-]*$'
         do { $user = Read-Default 'SSH user' $env:USERNAME.ToLowerInvariant() } until ($user -match '^[a-z_][a-z0-9_.-]*$')
@@ -168,35 +210,29 @@ function Add-DevHost {
         if (-not ($lan -or $tail)) { Write-Error 'Need at least one address.'; return }
         do { $port = Read-Default 'SSH port' '22' } until ($port -match '^\d{1,5}$')
 
-        # Key: one ed25519 key inside WSL. No passphrase keeps the 4 panes from prompting (BatchMode).
-        Invoke-DevWsl $cfg.distro @('sh', '-c', 'test -f ~/.ssh/id_ed25519') | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host 'Creating an SSH key in WSL (just press Enter for no passphrase)...'
-            $comment = ("$($env:USERNAME)@$($env:COMPUTERNAME)" -replace '[^\w@.-]', '')
-            Invoke-DevWsl $cfg.distro @('sh', '-c', 'mkdir -p $HOME/.ssh && chmod 700 $HOME/.ssh && ssh-keygen -t ed25519 -f $HOME/.ssh/id_ed25519 -C $1', 'sh', $comment)
+        # One key per host, so a leaked key only opens one machine. No passphrase keeps the 4 panes from prompting.
+        $key = Join-Path $script:SshDir "id_ed25519_$name"
+        if (-not (Test-Path $key)) {
+            Write-Host "Creating SSH key $key (press Enter twice for no passphrase)..."
+            & (Join-Path (Split-Path $ssh) 'ssh-keygen.exe') -t ed25519 -f $key -C "$($env:USERNAME)@$($env:COMPUTERNAME) $name"
         }
-
         $first = if ($lan) { $lan } else { $tail }
         Write-Host "Copying your public key to $user@$first (enter your password for that machine once)..."
-        Invoke-DevWsl $cfg.distro @('sh', '-c', 'ssh-copy-id -i $HOME/.ssh/id_ed25519.pub -p $1 -o HostKeyAlias=$2 -o StrictHostKeyChecking=accept-new $3',
-            'sh', $port, $name, "$user@$first")
-        if ($LASTEXITCODE -ne 0) { Write-Warning 'ssh-copy-id failed. Check the address/user; you can re-run devhost add.' }
-
-        Invoke-DevWsl $cfg.distro @($helper, 'add-host', $name, $user, $port, $(if ($lan) { $lan } else { '-' }), $(if ($tail) { $tail } else { '-' }))   # '-' = none (empty args get dropped)
+        Get-Content "$key.pub" -Raw | & $ssh -p $port -o HostKeyAlias=$name -o StrictHostKeyChecking=accept-new "$user@$first" 'umask 077; mkdir -p ~/.ssh; k=$(cat); grep -qxF "$k" ~/.ssh/authorized_keys 2>/dev/null || echo "$k" >> ~/.ssh/authorized_keys'
+        if ($LASTEXITCODE -ne 0) { Write-Warning 'Copying the key failed. Check the address/user; you can re-run devhost add.' }
+        Set-DevSshBlock $name $user $port $lan $tail $key
     }
 
     Write-Host 'Testing routes...'
-    Invoke-DevWsl $cfg.distro @($helper, 'check', $name, 'auto')
-    Invoke-DevWsl $cfg.distro @($helper, 'has-tmux', $name) | Out-Null
-    if ($LASTEXITCODE -eq 1) {
-        if ((Read-Default 'tmux is not installed on the host. Install it now with sudo? (Y/n)' 'y') -match '^[yY]') {
-            $route = (Invoke-DevWsl $cfg.distro @($helper, 'select', $name, 'auto') | Out-String).Trim()
-            Invoke-DevWsl $cfg.distro @('ssh', '-tt', '-o', 'BatchMode=no', $route,
-                'sudo apt-get install -y tmux || sudo dnf install -y tmux || sudo pacman -S --noconfirm tmux || brew install tmux')
+    Show-DevCheck $name 'auto'
+    try {
+        $route = Select-DevRoute $name 'auto' -NoCache
+        & $ssh -n $route 'command -v tmux >/dev/null'
+        if ($LASTEXITCODE -ne 0 -and (Read-Default 'tmux is not installed on the host. Install it now with sudo? (Y/n)' 'y') -match '^[yY]') {
+            & $ssh -tt -o BatchMode=no $route 'sudo apt-get install -y tmux || sudo dnf install -y tmux || sudo pacman -S --noconfirm tmux || brew install tmux'
         }
-    }
+    } catch { Write-Warning $_ }
 
-    # Commands and hotkey
     $defaultCmd = if ($old) { ($old.commands -join ',') } elseif (-not ($cfg.hosts | Where-Object { $_.commands -contains 'dev' })) { 'dev' } else { $name }
     while ($true) {
         $cmds = @((Read-Default 'Command(s) that open it, comma separated' $defaultCmd) -split '[,\s]+' | Where-Object { $_ })
@@ -222,7 +258,6 @@ function Add-DevHost {
     Save-DevHostConfig $cfg
     Update-DevHostTerminal $cfg
     Register-DevHostCommands
-
     Write-Host "`nDone. Type $($cmds -join ' or ')$(if ($hotkey) { " or press $hotkey in Windows Terminal" }) to open $name." -ForegroundColor Green
 }
 
@@ -232,10 +267,7 @@ function devhost {
     switch ($Action) {
         'add'    { Add-DevHost }
         'list'   { (Get-DevHostConfig).hosts | Select-Object name, @{ n = 'commands'; e = { $_.commands -join ', ' } }, @{ n = 'panes'; e = { $_.sessions -join ', ' } }, hotkey | Format-Table -AutoSize }
-        'check'  {
-            $cfg = Get-DevHostConfig; $helper = Install-DevConnect $cfg
-            foreach ($h in ($cfg.hosts | Where-Object { -not $Name -or $_.name -eq $Name })) { Write-Host "-- $($h.name)"; Invoke-DevWsl $cfg.distro @($helper, 'check', $h.name, 'auto') }
-        }
+        'check'  { foreach ($h in ((Get-DevHostConfig).hosts | Where-Object { -not $Name -or $_.name -eq $Name })) { Write-Host "-- $($h.name)"; Show-DevCheck $h.name 'auto' } }
         'remove' {
             $cfg = Get-DevHostConfig
             $h = $cfg.hosts | Where-Object name -eq $Name

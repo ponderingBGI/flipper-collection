@@ -499,11 +499,12 @@ Invoke-Safe 'Dotfiles' {
         Start-Sleep -Seconds 4
     }
 
-    # devhost (`dev` etc.): PowerShell side + the WSL helper it installs on first use. hosts.json is never overwritten.
+    # devhost (`dev` etc.): Windows OpenSSH + Windows Terminal panes. hosts.json is never overwritten.
     $dh = Join-Path $env:USERPROFILE '.config\dev-hosts'
     if (-not $DryRun) {
         New-Item -ItemType Directory -Force -Path $dh | Out-Null
-        Copy-Item (Join-Path $Dot 'dev-hosts\DevHosts.ps1'), (Join-Path $Dot 'dev-hosts\dev-connect') $dh -Force
+        Copy-Item (Join-Path $Dot 'dev-hosts\DevHosts.ps1'), (Join-Path $Dot 'dev-hosts\dev-attach.ps1') $dh -Force
+        Remove-Item (Join-Path $dh 'dev-connect') -ErrorAction SilentlyContinue   # the WSL helper isn't used on Windows any more
     }
     Write-Ok "devhost -> $dh"
 

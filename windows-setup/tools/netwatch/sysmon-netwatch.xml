@@ -1,0 +1,44 @@
+<Sysmon schemaversion="4.90">
+  <HashAlgorithms>SHA256</HashAlgorithms>
+  <CheckRevocation>False</CheckRevocation>
+  <EventFiltering>
+    <!-- 1: every new process, with command line, parent and hash -->
+    <RuleGroup name="proc" groupRelation="or">
+      <ProcessCreate onmatch="exclude" />
+    </RuleGroup>
+    <!-- 3: every network connection, with the process that made it -->
+    <RuleGroup name="net" groupRelation="or">
+      <NetworkConnect onmatch="exclude" />
+    </RuleGroup>
+    <!-- 22: every DNS lookup, with the process that made it -->
+    <RuleGroup name="dns" groupRelation="or">
+      <DnsQuery onmatch="exclude" />
+    </RuleGroup>
+    <!-- 11: files dropped where things start automatically or where this attack lived -->
+    <RuleGroup name="files" groupRelation="or">
+      <FileCreate onmatch="include">
+        <TargetFilename condition="contains">\Start Menu\Programs\Startup\</TargetFilename>
+        <TargetFilename condition="begin with">C:\Windows\System32\Tasks\</TargetFilename>
+        <TargetFilename condition="end with">.ps1</TargetFilename>
+        <TargetFilename condition="end with">.vbs</TargetFilename>
+        <TargetFilename condition="end with">.js</TargetFilename>
+        <TargetFilename condition="end with">.hta</TargetFilename>
+        <TargetFilename condition="contains">\Secure Preferences</TargetFilename>
+      </FileCreate>
+    </RuleGroup>
+    <!-- 12-14: autostart registry keys -->
+    <RuleGroup name="reg" groupRelation="or">
+      <RegistryEvent onmatch="include">
+        <TargetObject condition="contains">\CurrentVersion\Run</TargetObject>
+        <TargetObject condition="contains">\Image File Execution Options\</TargetObject>
+        <TargetObject condition="contains">\Winlogon\</TargetObject>
+        <TargetObject condition="contains">\Windows Defender\Exclusions\</TargetObject>
+        <TargetObject condition="contains">\InprocServer32\</TargetObject>
+      </RegistryEvent>
+    </RuleGroup>
+    <!-- 19-21: WMI persistence -->
+    <RuleGroup name="wmi" groupRelation="or">
+      <WmiEvent onmatch="exclude" />
+    </RuleGroup>
+  </EventFiltering>
+</Sysmon>

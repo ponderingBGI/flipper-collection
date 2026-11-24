@@ -24,7 +24,7 @@ export/
 - Random timing (1-3 seconds)
 
 📋 Environment Variables Set:
-FLIPPER_FW_PATH = c:\Users\olimt\OneDrive\Desktop\flipper\mouse-jiggler\export
+FLIPPER_FW_PATH = <firmware export directory>
 
 🔧 Build Command Used:
 bash fbt fap_mousejiggler

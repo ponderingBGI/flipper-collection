@@ -1,2 +1,3 @@
-windows-setup/dotfiles/dev-hosts/dev-connect text eol=lf
+setup/omarchy/dev-connect text eol=lf
 *.sh text eol=lf
+setup/omarchy/devhost text eol=lf

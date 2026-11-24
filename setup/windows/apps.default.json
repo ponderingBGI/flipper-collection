@@ -1,0 +1,14 @@
+{
+  "groups": {
+    "core": {
+      "enabled": true,
+      "description": "Git, Windows Terminal and archive tools",
+      "packages": [
+        "Git.Git",
+        "Microsoft.WindowsTerminal",
+        "7zip.7zip"
+      ]
+    }
+  },
+  "blocked": []
+}

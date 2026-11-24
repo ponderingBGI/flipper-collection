@@ -1,31 +1,19 @@
 # Flipper Collection
 
-Personal Flipper Zero scripts and apps - quick & dirty solutions I built for myself. Use, modify, or improve as you like.
+Apps and BadUSB payloads for Flipper Zero.
 
 ## Apps
-- apps/mouse-jiggler: Mouse and keyboard Jiggler
-  - See: apps/mouse-jiggler/README.md
 
-## Bad USB Scripts
-- MSConfig Safe Boot Enable
-  - See: packages/badusb/msconfig-safe-boot.txt and packages/badusb/README.md
-  - Script discovered in a Pierogi Scammer Payback video
-  - Tested and verified working on Windows 10
-- **windows-setup**: plug in a fresh Windows PC and get my whole setup (no OneDrive, debloated, apps, oh-my-posh, terminal, WSL)
-  - See: packages/badusb/windows-setup.txt and windows-setup/README.md
+- [Mouse and Keyboard Jiggler](apps/mouse-jiggler/README.md) · [Download the FAP](packages/apps/Tools/mouse-and-keyboard-jiggler.fap). Copy it to `apps/Tools` on the Flipper microSD with qFlipper, then open **Apps → Tools** on the device.
 
-## Omarchy dual boot
-- omarchy-setup/: one command after installing Omarchy next to Windows (reboot-to-Windows, shared C:, devhost, Bluetooth sync)
-  - See: omarchy-setup/README.md
+## BadUSB
 
-## Downloads
-- Packaged apps ready to drag onto your Flipper: downloads/
+See [payloads and loading instructions](packages/badusb/README.md). Set the Flipper keyboard layout to match the computer before running a payload.
 
-## Packages (auto-updated on main)
-- Apps (Tools): packages/apps/Tools/
-- Sub-GHz: packages/subghz/
-- BadUSB: packages/badusb/
-- NFC: packages/nfc/
+## Machine setup
 
-See DEVELOPMENT.md for the build/test workflow.
-Pipeline is provided via `make test`.
+- [Windows](setup/windows/README.md) · Set up a signed-in Windows PC with a small app list and optional system settings.
+- [Omarchy](setup/omarchy/README.md) · Add optional tools after installing Omarchy.
+- [Windows + Omarchy dual boot](setup/dualboot/README.md) · Make space for Omarchy and switch between operating systems while preserving sessions on supported hardware.
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for Flipper build and packaging instructions.

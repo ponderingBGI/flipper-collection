@@ -1,0 +1,16 @@
+[core]
+	sshCommand = ssh.exe
+	longpaths = true
+[init]
+	defaultBranch = main
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+[credential "https://github.com"]
+	helper =
+	helper = !'C:\\Program Files\\GitHub CLI\\gh.exe' auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !'C:\\Program Files\\GitHub CLI\\gh.exe' auth git-credential

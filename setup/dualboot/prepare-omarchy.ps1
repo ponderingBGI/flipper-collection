@@ -16,14 +16,14 @@ $part = Get-Partition -DriveLetter C
 $disk = Get-Disk -Number $part.DiskNumber
 if ($disk.PartitionStyle -ne 'GPT') { throw 'The system disk must use GPT and boot in UEFI mode.' }
 
-$needed = [math]::Max(0, $OmarchyGB * 1GB - $disk.LargestFreeExtent)
-if ($needed -gt 0) {
+$requested = [long]$OmarchyGB * 1GB
+if ([long]$disk.LargestFreeExtent -lt $requested) {
     # Existing free space elsewhere on disk cannot be combined with the shrink.
     $next = Get-Partition -DiskNumber $disk.Number | Where-Object Offset -gt $part.Offset |
         Sort-Object Offset | Select-Object -First 1
     $end = if ($next) { $next.Offset } else { $disk.Size }
-    $adjacent = [math]::Max(0, $end - ($part.Offset + $part.Size) - 1MB)
-    $target = $part.Size - [math]::Max(0, $OmarchyGB * 1GB - $adjacent)
+    $adjacent = [math]::Max(0L, [long]$end - [long]$part.Offset - [long]$part.Size - 1MB)
+    $target = [long]$part.Size - [math]::Max(0L, $requested - $adjacent)
     if ($target -lt (Get-PartitionSupportedSize -DriveLetter C).SizeMin) {
         throw 'Windows cannot make a large enough contiguous extent. See shrink/README.md.'
     }

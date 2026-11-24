@@ -87,11 +87,11 @@ if [ -n "$LC" ]; then
   grep -qi 'bootmgfw.efi\|windows' "$LC" || echo "    No Windows entry in $LC yet: run 'sudo limine-scan' once and add Windows Boot Manager"
 fi
 
-say "Windows C: at /mnt/windows (mounted on first access)"
+say "Windows C: at /mnt/windows, READ-ONLY (Windows hibernates when switching; writing to a hibernated NTFS would corrupt it)"
 WIN=$(lsblk -bnro UUID,FSTYPE,SIZE | awk '$2=="ntfs"' | sort -k3 -n | tail -1 | cut -d' ' -f1)
 if [ -n "$WIN" ] && ! grep -q "$WIN" /etc/fstab; then
   sudo mkdir -p /mnt/windows
-  echo "UUID=$WIN /mnt/windows ntfs3 rw,uid=$(id -u),gid=$(id -g),windows_names,nofail,noauto,x-systemd.automount,x-systemd.idle-timeout=120 0 0" | sudo tee -a /etc/fstab >/dev/null
+  echo "UUID=$WIN /mnt/windows ntfs3 ro,uid=$(id -u),gid=$(id -g),windows_names,nofail,noauto,x-systemd.automount,x-systemd.idle-timeout=120 0 0" | sudo tee -a /etc/fstab >/dev/null
   sudo systemctl daemon-reload
   ln -sfn /mnt/windows/Users "$HOME/Windows"
   echo "    ~/Windows -> your Windows user folders"

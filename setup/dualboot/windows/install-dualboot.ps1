@@ -4,8 +4,9 @@
   - task DualBoot-RebootToOmarchy: the 'omarchy' command, Start menu shortcut and Ctrl+Alt+O ask before switching
   - task DualBoot-KeepWindowsOnRestart: restarts started in Windows come back to Windows
   - Start menu + desktop shortcut "Omarchy" with the Ctrl+Alt+O hotkey
+  -NoConfirm: the shortcut/hotkey switches immediately, without the "Switch to Omarchy?" dialog
 #>
-param([Alias('WhatIf')][switch]$DryRun, [switch]$Yes)
+param([Alias('WhatIf')][switch]$DryRun, [switch]$Yes, [switch]$NoConfirm)
 $From = $PSScriptRoot
 Write-Host '==> Install Windows switch tasks, scripts, and shortcuts'
 if ($DryRun) { return }
@@ -19,6 +20,9 @@ $pf = Join-Path $env:ProgramFiles 'DualBoot'
 New-Item -ItemType Directory -Force $pf | Out-Null
 foreach ($f in 'reboot-to-omarchy.ps1', 'keep-windows-on-restart.ps1', 'switch-to-omarchy.ps1') { Copy-Item (Join-Path $From $f) $pf -Force }
 $ico = Join-Path $From 'omarchy.ico'; if (Test-Path $ico) { Copy-Item $ico $pf -Force }
+$state = Join-Path $env:ProgramData 'DualBoot'; New-Item -ItemType Directory -Force $state | Out-Null
+$flag = Join-Path $state 'no-confirm'
+if ($NoConfirm) { Set-Content $flag 'switch without asking' } elseif (Test-Path $flag) { Remove-Item $flag -Force }
 
 $ps = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
 $user = [Security.Principal.WindowsIdentity]::GetCurrent().Name

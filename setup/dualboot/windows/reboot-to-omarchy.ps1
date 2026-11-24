@@ -15,7 +15,7 @@ if ($entries.Count -ne 1) { "$(Get-Date -f s) expected one Omarchy/Limine firmwa
 
 $entry = $entries[0]
 # The switch must preserve the Windows session.
-$available = (Get-Item (Join-Path $env:SystemDrive 'hiberfil.sys') -Force -ErrorAction SilentlyContinue)
+$available = (Get-Item "$env:SystemDrive\hiberfil.sys" -Force -ErrorAction SilentlyContinue)
 if (-not $available) { "$(Get-Date -f s) hibernation file missing" | Add-Content $log; exit 1 }
 bcdedit /set '{fwbootmgr}' bootsequence $entry | Out-Null
 if ($LASTEXITCODE -ne 0) { "$(Get-Date -f s) could not set BootNext" | Add-Content $log; exit 1 }

@@ -15,8 +15,10 @@ if ($entries.Count -ne 1) { "$(Get-Date -f s) expected one Omarchy/Limine firmwa
 
 $entry = $entries[0]
 # The switch must preserve the Windows session.
-$available = (Get-Item "$env:SystemDrive\hiberfil.sys" -Force -ErrorAction SilentlyContinue)
-if (-not $available) { "$(Get-Date -f s) hibernation file missing" | Add-Content $log; exit 1 }
+# Hibernation must be enabled (powercfg /h on). Don't rely on reading hiberfil.sys: it's a locked system file.
+$hibOn = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Power' -ErrorAction SilentlyContinue).HibernateEnabled -eq 1
+$avail = (powercfg /a | Out-String) -split '(?m)^The following sleep states are not available' | Select-Object -First 1
+if (-not $hibOn -or $avail -notmatch '(?m)^\s*Hibernate\s*$') { "$(Get-Date -f s) hibernation not available (HibernateEnabled=$hibOn)" | Add-Content $log; exit 1 }
 bcdedit /set '{fwbootmgr}' bootsequence $entry | Out-Null
 if ($LASTEXITCODE -ne 0) { "$(Get-Date -f s) could not set BootNext" | Add-Content $log; exit 1 }
 # External USB drives (e.g. a shared data SSD): flush and dismount them, so Linux can use them safely

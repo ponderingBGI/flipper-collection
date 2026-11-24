@@ -5,7 +5,7 @@
   - task DualBoot-KeepWindowsOnRestart: restarts started in Windows come back to Windows
   - Start menu + desktop shortcut "Omarchy" with the Ctrl+Alt+O hotkey
 #>
-param([Alias('WhatIf')][switch]$DryRun)
+param([Alias('WhatIf')][switch]$DryRun, [switch]$Yes)
 $From = $PSScriptRoot
 Write-Host '==> Install Windows switch tasks, scripts, and shortcuts'
 if ($DryRun) { return }
@@ -13,7 +13,7 @@ $principal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIde
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     throw 'Run this script from an administrator Windows PowerShell.'
 }
-if ((Read-Host 'Install the dual-boot tasks and shortcuts? [y/N]') -notmatch '^(y|yes)$') { return }
+if (-not $Yes -and (Read-Host 'Install the dual-boot tasks and shortcuts? [y/N]') -notmatch '^(y|yes)$') { return }
 $ErrorActionPreference = 'Stop'
 $pf = Join-Path $env:ProgramFiles 'DualBoot'
 New-Item -ItemType Directory -Force $pf | Out-Null

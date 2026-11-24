@@ -1,0 +1,45 @@
+REM Open visible Windows PowerShell, verify a pinned archive, then ask before launching setup.
+DELAY 3500
+GUI r
+DELAY 700
+STRING powershell.exe -NoProfile -NoExit
+ENTER
+DELAY 2500
+STRING_DELAY 8 & {
+ENTER
+STRING_DELAY 8 $ErrorActionPreference = 'Stop'
+ENTER
+STRING_DELAY 8 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072
+ENTER
+STRING_DELAY 8 $pin = 'd55983b89ac3e3c3eb5262c3a3de8981c8043fb2'
+ENTER
+STRING_DELAY 8 $sha = '29D08E24FD7153E6E31D95ED1991C82F02A955B751E1EEFB44C6661577C2DCFF'
+ENTER
+STRING_DELAY 8 $work = Join-Path $env:TEMP ('flipper-setup-' + [guid]::NewGuid())
+ENTER
+STRING_DELAY 8 New-Item -ItemType Directory -Path $work | Out-Null
+ENTER
+STRING_DELAY 8 $zip = Join-Path $work 'setup.zip'
+ENTER
+STRING_DELAY 8 Write-Host 'Downloading the pinned Windows setup archive...'
+ENTER
+STRING_DELAY 8 Invoke-WebRequest "https://codeload.github.com/ponderingBGI/flipper-collection/zip/$pin" -UseBasicParsing -OutFile $zip
+ENTER
+STRING_DELAY 8 if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -ne $sha) { throw 'SHA256 mismatch. Setup stopped.' }
+ENTER
+STRING_DELAY 8 Expand-Archive -LiteralPath $zip -DestinationPath $work
+ENTER
+STRING_DELAY 8 $script = Join-Path $work "flipper-collection-$pin\setup\windows\setup.ps1"
+ENTER
+STRING_DELAY 8 if (!(Test-Path -LiteralPath $script -PathType Leaf)) { throw 'Setup script missing from archive.' }
+ENTER
+STRING_DELAY 8 Write-Host "Verified setup script: $script"
+ENTER
+STRING_DELAY 8 if ((Read-Host 'Open administrator setup? [y/N]') -match '^(y|yes)$') {
+ENTER
+STRING_DELAY 8 Start-Process powershell.exe -Verb RunAs -ArgumentList ('-NoProfile -NoExit -ExecutionPolicy RemoteSigned -File "{0}"' -f $script)
+ENTER
+STRING_DELAY 8 }
+ENTER
+STRING_DELAY 8 }
+ENTER

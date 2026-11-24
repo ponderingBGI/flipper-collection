@@ -1,0 +1,38 @@
+REM Focus a terminal in the signed-in Omarchy desktop before starting this payload.
+DELAY 4500
+STRING_DELAY 8 bash -c '
+ENTER
+STRING_DELAY 8 set -eu
+ENTER
+STRING_DELAY 8 pin=d55983b89ac3e3c3eb5262c3a3de8981c8043fb2
+ENTER
+STRING_DELAY 8 sha=6fddc461d59f7d97120b10b31a2f68d762c05c0c3421a14df6388609cbd9d93a
+ENTER
+STRING_DELAY 8 work=$(mktemp -d)
+ENTER
+STRING_DELAY 8 cd "$work"
+ENTER
+STRING_DELAY 8 echo "Downloading the pinned Omarchy setup archive..."
+ENTER
+STRING_DELAY 8 curl -fLsS "https://codeload.github.com/ponderingBGI/flipper-collection/tar.gz/$pin" -o setup.tar.gz
+ENTER
+STRING_DELAY 8 echo "$sha  setup.tar.gz" | sha256sum -c -
+ENTER
+STRING_DELAY 8 tar -xzf setup.tar.gz
+ENTER
+STRING_DELAY 8 cd "flipper-collection-$pin"
+ENTER
+STRING_DELAY 8 echo "1) Omarchy tools  2) Dual-boot switch installer  Enter) Cancel"
+ENTER
+STRING_DELAY 8 read -r choice
+ENTER
+STRING_DELAY 8 case "$choice" in
+ENTER
+STRING_DELAY 8 1) bash setup/omarchy/setup.sh --syncthing --dev-hosts ;;
+ENTER
+STRING_DELAY 8 2) bash setup/dualboot/setup-omarchy.sh ;;
+ENTER
+STRING_DELAY 8 esac
+ENTER
+STRING_DELAY 8 '
+ENTER

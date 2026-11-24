@@ -11,6 +11,7 @@ bash setup/omarchy/setup.sh --syncthing --dev-hosts
 
 Select either or both options. `--syncthing` installs Syncthing and enables its user service. `--dev-hosts` installs OpenSSH, tmux and local helper commands. Open a new terminal and run `devhost add` to set your own SSH host, login, routes and commands. The script asks before applying changes and can be rerun.
 
-For Flipper use, open a terminal manually and run the commands above from the extracted repository. The Windows BadUSB loader is for the Windows desktop.
 
 To undo, disable Syncthing with `systemctl --user disable --now syncthing.service`. Remove `~/.local/bin/devhost`, `~/.local/bin/dev-connect` and the aliases line in `~/.bashrc` to remove the wizard. Keep your SSH keys and user data unless you intentionally want to delete them. Remove unused packages through pacman.
+
+For BadUSB, copy [omarchy-setup.txt](../../packages/badusb/omarchy-setup.txt) to the Flipper and select the Omarchy tools option. [Loading instructions](../../packages/badusb/README.md)

@@ -30,3 +30,5 @@ Run the disk and boot commands manually so you can review the target at each ste
 ## Undo
 
 Remove both `DualBoot-*` tasks using Task Scheduler, remove the Omarchy shortcuts and remove `DualBoot` under Program Files and `~/.config/dualboot` on Windows. Set the preferred default in firmware. On Omarchy remove `~/.local/bin/windows` and `~/.local/share/applications/windows-reboot.desktop`. If you configured the mount, stop `mnt-windows.automount` and `mnt-windows.mount`, remove the matching fstab entry and run `sudo systemctl daemon-reload`. Restore clock, hibernation, Fast Startup and encryption preferences separately. Removing Omarchy partitions and extending C: is a separate disk operation. Verify partition identities and backups before changing the layout again.
+
+The same [Omarchy BadUSB payload](../../packages/badusb/omarchy-setup.txt) offers the Omarchy switch installer after you have set up both operating systems. Use the manual command for the optional NTFS mount.

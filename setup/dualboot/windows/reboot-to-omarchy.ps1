@@ -2,6 +2,7 @@
 # Sets a one-time boot into Limine/Omarchy, then HIBERNATES, so Windows resumes exactly where you left it
 # the next time you boot Windows (Limine menu, or 'windows' / SUPER+ALT+W on Omarchy).
 # While Windows is hibernated, Linux must not write to C: (Omarchy mounts it read-only).
+# External USB drives are flushed and dismounted first, so Linux can use them.
 $dir = $PSScriptRoot
 $log = Join-Path $dir 'switch.log'
 $fw = bcdedit /enum firmware | Out-String
@@ -18,6 +19,10 @@ $available = (Get-Item (Join-Path $env:SystemDrive 'hiberfil.sys') -Force -Error
 if (-not $available) { "$(Get-Date -f s) hibernation file missing" | Add-Content $log; exit 1 }
 bcdedit /set '{fwbootmgr}' bootsequence $entry | Out-Null
 if ($LASTEXITCODE -ne 0) { "$(Get-Date -f s) could not set BootNext" | Add-Content $log; exit 1 }
+# External USB drives (e.g. a shared data SSD): flush and dismount them, so Linux can use them safely
+# while Windows is hibernated. Windows mounts them again by itself after resuming.
+$usb = Get-Disk | Where-Object BusType -eq 'USB' | ForEach-Object { Get-Partition -DiskNumber $_.Number -ErrorAction SilentlyContinue } | Where-Object DriveLetter
+foreach ($p in $usb) { "$(Get-Date -f s) dismount $($p.DriveLetter): $((fsutil volume dismount "$($p.DriveLetter):" 2>&1 | Out-String).Trim())" | Add-Content $log }
 "$(Get-Date -f s) switching to $entry (hibernate)" | Add-Content $log
 shutdown.exe /h
 if ($LASTEXITCODE -ne 0) {
